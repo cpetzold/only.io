@@ -1,4 +1,4 @@
-(ns jnput.core
+(ns onlyio.core
   (:use-macros [webfui.framework.macros :only [add-dom-watch]])
   (:require [webfui.framework :as fui]
             [clojure.browser.dom :as dom]
@@ -20,6 +20,7 @@
           {:dataType "jsonp"
            :success (fn [res]
                       (cb (when-let [words (nth res 1)]
+                          (nth words 1)
                             (first
                              (drop-while
                               #(not (starts-with? % q))
