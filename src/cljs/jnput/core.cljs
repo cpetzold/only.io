@@ -7,8 +7,23 @@
 
 (def wordnik-base "http://api.wordnik.com//v4/words.json/search/")
 
+(def google-auto "http://suggestqueries.google.com/complete/search?client=chrome&q=")
+
+(defn starts-with? [s p]
+  (= 0 (.indexOf s p)))
+
 (defn res-map [res]
   (walk/keywordize-keys (js->clj res)))
+
+(defn autocomplete [q cb]
+  ($/ajax (str google-auto q)
+          {:dataType "jsonp"
+           :success (fn [res]
+                      (cb (when-let [words (nth res 1)]
+                            (first
+                             (drop-while
+                              #(not (starts-with? % q))
+                              words)))))}))
 
 (defn get-word [q cb]
   ($/ajax (str wordnik-base q ".*?allowRegex=true&api_key=997ea3a64b190c6d8f0040df7b6003393e51bbd224bc5ec8d")
@@ -42,7 +57,7 @@
                    patch
                    (do
                      (when-not (empty? value)
-                       (get-word value
+                       (autocomplete value
                                  (fn [word]
                                    (when (= value (-> @state :search :query))
                                      (swap! state assoc-in [:search :result] word)))))
