@@ -2,8 +2,11 @@
   (:use-macros [webfui.framework.macros :only [add-dom-watch]])
   (:require [webfui.framework :as fui]
             [clojure.browser.dom :as dom]
+            [clojure.browser.repl :as repl]
             [clojure.walk :as walk]
             [jayq.core :as $]))
+
+(repl/connect "http://localhost:9000/repl")
 
 (def wordnik-base "http://api.wordnik.com//v4/words.json/search/")
 
