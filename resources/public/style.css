@@ -1,0 +1,43 @@
+body {
+    background: #333;
+    box-model: border-box;
+    padding: 1em;
+    font-family: Helvetica;
+}
+
+#input-wrapper {
+    position: relative;
+    height: 4.5em;
+}
+
+input {
+    font-family: Helvetica;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    font-size: 2em;
+    padding: 0.3em;
+    border: 0.2em solid #333;
+    outline: none;
+    border-radius: 0.3em;
+}
+
+#input {
+    -webkit-transition: border 0.3s;
+    z-index: 1;
+    background: transparent;
+}
+
+#input:focus {
+    border-color: #222;
+}
+
+#input-back {
+    color: silver;
+}
+
+#results {
+    background: #fff;
+    color: #333;
+    border-radius: 0.3em;
+    margin: 0.2em;
+}

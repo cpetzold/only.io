@@ -8,9 +8,17 @@
 
 (repl/connect "http://localhost:9000/repl")
 
+(def tweet-length 140)
+
 (def wordnik-base "http://api.wordnik.com//v4/words.json/search/")
 
-(def google-auto "http://suggestqueries.google.com/complete/search?client=chrome&q=")
+(def google-auto "http://clients5.google.com/complete/search?hl=en&client=chrome&q=")
+
+(def initial-state
+  {:tweet ""
+   :search {:query "" :completes []}})
+
+(def state (atom initial-state))
 
 (defn starts-with? [s p]
   (= 0 (.indexOf s p)))
@@ -18,16 +26,19 @@
 (defn res-map [res]
   (walk/keywordize-keys (js->clj res)))
 
+(defn format-completes [res]
+  (let [strings (nth res 1)
+        types (get-in res [4 :google:suggesttype])
+        relevance (get-in res [4 :google:suggestrelevance])]
+    (into [] (for [i (range 0 (count strings))]
+      {:string (nth strings i)
+       :type (nth types i)
+       :rel (nth relevance i)}))))
+
 (defn autocomplete [q cb]
   ($/ajax (str google-auto q)
           {:dataType "jsonp"
-           :success (fn [res]
-                      (cb (when-let [words (nth res 1)]
-                          (nth words 1)
-                            (first
-                             (drop-while
-                              #(not (starts-with? % q))
-                              words)))))}))
+           :success (fn [res] (cb (format-completes (res-map res))))}))
 
 (defn get-word [q cb]
   ($/ajax (str wordnik-base q ".*?allowRegex=true&api_key=997ea3a64b190c6d8f0040df7b6003393e51bbd224bc5ec8d")
@@ -37,52 +48,52 @@
                        (when-let [word (get-in (res-map res) [:searchResults 1 :word])]
                          word)))}))
 
-(def tweet-length 140)
-
-(def initial-state
-  {:tweet ""
-   :search {:query "" :result ""}})
-
-(def state (atom initial-state))
-
 (add-dom-watch :tweet-watch [s new]
                (let [{:keys [value]} (second new)]
                  (when (< (count value) (inc tweet-length))
                    {:tweet value})))
 
-(add-dom-watch :search-watch [s new]
+(add-dom-watch :input-watch [s new]
                (let [{:keys [value]} (second new)
                      patch {:search {:query value}}
                      query (-> s :search :query)
-                     result (-> s :search :result)]
-                 (if (and result
-                          (= 0 (.indexOf result value))
+                     completes (-> s :search :completes)
+                     closest (first completes)]
+                 (dom/log closest value)
+                 (if (and closest
+                          (starts-with? value (:string closest))
                           (< query value))
                    patch
-                   (do
-                     (when-not (empty? value)
+                   (if (empty? value)
+                     (assoc-in patch [:search :completes] [])
+                     (do
                        (autocomplete value
-                                 (fn [word]
-                                   (when (= value (-> @state :search :query))
-                                     (swap! state assoc-in [:search :result] word)))))
-                     (assoc-in patch [:search :result] value)))))
-                     
-(defn render [s]
-  (let [{:keys [tweet search]} s]
-    [:div
-     [:div#tweet
-      [:input#tweet-in {:watch :tweet-watch
-                        :value tweet
-                        :placeholder "Tweet..."}]
-      [:input#tweet-count {:value (if (empty? tweet) ""
-                                      (str tweet (- tweet-length (count tweet))))
-                           :disabled true}]]
-     [:div#search
-      [:input#search-query {:watch :search-watch
-                            :value (:query search)
-                            :autofocus true
-                            :placeholder "Search..."}]
-      [:input#search-res {:value (:result search)
-                          :disabled true}]]]))
+                         (fn [completes]
+                           (when (= value (-> @state :search :query))
+                             (swap! state assoc-in [:search :completes] completes))))
+                       patch)))))
+                 
+(defn auto-result [complete]
+  [:div.complete (:string complete)])
 
+(defn first-result [search]
+  (if-let [complete (first
+                     (drop-while
+                      #(not (starts-with? (:string %) (:query search)))
+                      (:completes search)))]
+    (:string complete)
+    ""))
+
+(defn render [s]
+  (let [{:keys [search]} s]
+    [:div#container
+     [:div#input-wrapper
+      [:input#input {:watch :input-watch
+                     :value (:query search)
+                     :autofocus true
+                     :placeholder "Search..."}]
+      [:input#input-back {:value (first-result search)
+                          :disabled true}]]
+     [:div#results (map auto-result (:completes search))]]))
+  
 (fui/launch-app state render)
