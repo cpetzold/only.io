@@ -1,6 +1,4 @@
-# jnput
-
-FIXME: write description
+# only.io
 
 ## Browser REPL setup
 
@@ -13,12 +11,3 @@ FIXME: write description
            (run-lisp "LEIN-DIR trampoline cljsbuild repl-listen"))`
 * M-x browser-repl and eval (repl/connect ...)
 
-## Usage
-
-FIXME: write
-
-## License
-
-Copyright (C) 2012 FIXME
-
-Distributed under the Eclipse Public License, the same as Clojure.

@@ -22,7 +22,7 @@
    :prod 4000})
 
 (defn -main [& m]
-  (let [mode (or (first m) :local)
+  (let [mode (or (keyword (first m)) :local)
         port (ports mode)]
     (server/start port {:mode (keyword mode)
                         :ns 'onlyio})))

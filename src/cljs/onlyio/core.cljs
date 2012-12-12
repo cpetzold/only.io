@@ -2,6 +2,7 @@
   (:use-macros [webfui.framework.macros :only [add-dom-watch]])
   (:require [webfui.framework :as fui]
             [clojure.browser.dom :as dom]
+            [clojure.browser.event :as event]
             [clojure.browser.repl :as repl]
             [clojure.walk :as walk]
             [jayq.core :as $]))
@@ -14,11 +15,7 @@
 
 (def google-auto "http://clients5.google.com/complete/search?hl=en&client=chrome&q=")
 
-(def initial-state
-  {:tweet ""
-   :search {:query "" :completes []}})
-
-(def state (atom initial-state))
+(declare state)
 
 (defn starts-with? [s p]
   (= 0 (.indexOf s p)))
@@ -59,7 +56,6 @@
                      query (-> s :search :query)
                      completes (-> s :search :completes)
                      closest (first completes)]
-                 (dom/log closest value)
                  (if (and closest
                           (starts-with? value (:string closest))
                           (< query value))
@@ -72,7 +68,22 @@
                            (when (= value (-> @state :search :query))
                              (swap! state assoc-in [:search :completes] completes))))
                        patch)))))
-                 
+
+(defn search-submit [query]
+  (set! js/window.location
+        (str "//www.google.com/search?q=" query)))
+
+(defn search [e]
+  (let [target (.-target e)
+        code (.-keyCode e)
+        id (.getAttribute target "id")]
+    (case code
+      13 (when (= id "input") (search-submit (.-value target)))
+      nil)))
+
+(defn handle-keypress [e]
+  ((:key-handle @state) e))
+
 (defn auto-result [complete]
   [:div.complete (:string complete)])
 
@@ -95,5 +106,14 @@
       [:input#input-back {:value (first-result search)
                           :disabled true}]]
      [:div#results (map auto-result (:completes search))]]))
-  
+
+(def initial-state
+  {:key-handle search
+   :tweet ""
+   :search {:query "" :completes []}})
+
+(def state (atom initial-state))
+
 (fui/launch-app state render)
+
+(event/listen js/document.body :keypress handle-keypress)
