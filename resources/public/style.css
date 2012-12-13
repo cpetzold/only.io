@@ -1,24 +1,26 @@
 body {
     background: #333;
-    box-model: border-box;
+    box-sizing: border-box;
     padding: 1em;
     font-family: Helvetica;
 }
 
 #input-wrapper {
     position: relative;
-    height: 4.5em;
+    height: 4em;
 }
 
-input {
+textarea {
     font-family: Helvetica;
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0; bottom: 0; left: 0; right: 0;
     font-size: 2em;
-    padding: 0.3em;
-    border: 0.2em solid #333;
+    padding: 0.5em;
+    margin: 0;
+    border: none;
     outline: none;
-    border-radius: 0.3em;
+    resize: none;
+    overflow: hidden;
 }
 
 #input {
@@ -38,6 +40,10 @@ input {
 #results {
     background: #fff;
     color: #333;
-    border-radius: 0.3em;
-    margin: 0.2em;
+    padding: 0 0.5em 0.5em;
+    font-size: 2em;
+}
+
+.hide {
+    display: none;
 }

@@ -69,16 +69,18 @@
                              (swap! state assoc-in [:search :completes] completes))))
                        patch)))))
 
-(defn search-submit [query]
-  (set! js/window.location
-        (str "//www.google.com/search?q=" query)))
+(defn search-submit [e]
+  (let [target (.-target e)]
+    (.preventDefault e)
+    (set! js/window.location
+          (str "//www.google.com/search?q=" (.-value target)))))
 
 (defn search [e]
   (let [target (.-target e)
         code (.-keyCode e)
         id (.getAttribute target "id")]
     (case code
-      13 (when (= id "input") (search-submit (.-value target)))
+      13 (when (= id "input") (search-submit e))
       nil)))
 
 (defn handle-keypress [e]
@@ -99,13 +101,15 @@
   (let [{:keys [search]} s]
     [:div#container
      [:div#input-wrapper
-      [:input#input {:watch :input-watch
-                     :value (:query search)
-                     :autofocus true
-                     :placeholder "Search..."}]
-      [:input#input-back {:value (first-result search)
-                          :disabled true}]]
-     [:div#results (map auto-result (:completes search))]]))
+      [:textarea#input {:watch :input-watch
+                        :value (:query search)
+                        :autofocus true
+                        :placeholder "Search..."}]
+      [:textarea#input-back {:value (first-result search)
+                             :disabled true}]]
+     [:div#results
+      {:class (when (empty? (:completes search)) "hide")}
+      (map auto-result (:completes search))]]))
 
 (def initial-state
   {:key-handle search
