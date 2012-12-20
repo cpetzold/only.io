@@ -110,8 +110,21 @@
      (and (= key :enter) (= id "input")) (search-submit event)
      (and (= key :tab) (= id "input")) (complete-suggestion event))))
 
+(def mode-map
+  {:search
+   {:placeholder "Search..."
+    :input-watch :search-watch
+    :tail-value (fn [{:keys [input completes]} s] (first-result completes input))
+    :key-handle search}
+   :tweet
+   {:placeholder "Tweet..."
+    :input-watch :tweet-watch
+    :tail-value (fn [{:keys [input]} s] (if (empty? input) ""
+                                            (str input (- tweet-length (count input)))))}})
+
 (defn handle-keydown [e]
-  ((:key-handle @state) (event-info e)))
+  (if-let [key-handle (-> mode-map (:mode @state) :key-handle)]
+    (key-handle (event-info e))))
 
 (defn auto-result [query complete]
   (let [complete-str (:string complete)]
@@ -120,21 +133,25 @@
        (str/replace-first complete-str (re-pattern query) "")]
       [:div.complete complete-str])))
 
-(def mode-map
-  {:search
-   {:placeholder "Search..."
-    :input-watch :search-watch
-    :tail-value (fn [{:keys [input completes]} s] (first-result completes input))}
-   :tweet
-   {:placeholder "Tweet..."
-    :input-watch :tweet-watch
-    :tail-value (fn [{:keys [input]} s] (if (empty? input) ""
-                                          (str input (- tweet-length (count input)))))}})
+(defn other-mode [m]
+  (if (= m :tweet) :search :tweet))
+
+(defn toggle-mode []
+  (let [curr-mode (:mode @state)
+        new-mode (other-mode curr-mode)]
+    (swap! state assoc :mode new-mode)
+    (.focus (dom/get-element :input))))
+
+(defn handle-click [e]
+  (let [event (event-info e)]
+    (when (= (:target-id event) "toggle-mode")
+      (toggle-mode))))
 
 (defn render [s]
   (let [{:keys [input completes mode]} s
         params (mode-map mode)]
     [:div#container
+     [:button#toggle-mode (str "Switch to " (name (other-mode mode)) " mode")]
      [:div#input-wrapper
       [:textarea#input {:watch (:input-watch params)
                         :value input
@@ -143,10 +160,10 @@
       [:textarea#tail {:value ((:tail-value params) s)
                        :disabled true}]]
      [:div#results
-      {:class (when (empty? completes) "hide")}
+      {:class (when (or (= mode :tweet) (empty? completes)) "hide")}
       (map #(auto-result input %) completes)]]))
 
-(swap! state assoc :key-handle search)
 (fui/launch-app state render)
 
 (event/listen js/document.body :keydown handle-keydown)
+(event/listen js/document.body :click handle-click)
