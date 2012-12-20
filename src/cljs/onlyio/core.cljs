@@ -9,11 +9,10 @@
             [jayq.core :as $]))
 
 ;; repl
-(repl/connect "http://localhost:9000/repl")
+;(repl/connect "http://localhost:9000/repl")
 
 ;; constants
 (def tweet-length 140)
-(def wordnik-base "http://api.wordnik.com/v4/words.json/search/")
 (def google-auto "http://clients5.google.com/complete/search?hl=en&client=chrome&q=")
 
 ;; helpers
@@ -22,11 +21,14 @@
    9 :tab
    32 :space})
 
+(def auto-map
+  {:tweet "woot"})
+
 ;; state
 (def initial-state
   {:key-handle nil
-   :tweet ""
-   :search {:query "" :completes []}})
+   :input ""
+   :completes []})
 
 (def state (atom initial-state))
 
@@ -36,7 +38,7 @@
 (defn res-map [res]
   (walk/keywordize-keys (js->clj res)))
 
-(defn format-completes [res]
+(defn google-format-completes [res]
   (let [strings (nth res 1)
         types (get-in res [4 :google:suggesttype])
         relevance (get-in res [4 :google:suggestrelevance])]
@@ -45,34 +47,25 @@
        :type (nth types i)
        :rel (nth relevance i)}))))
 
-(defn autocomplete [q]
-  ($/ajax (str google-auto q)
-          {:dataType "jsonp"
-           :success (fn [res]
-                      (when (= q (-> @state :search :query))
-                        (swap! state assoc-in [:search :completes]
-                               (format-completes (res-map res)))))}))
+(defn google-auto-update! [input res]
+  (when (= input (:input @state))
+    (swap! state assoc :completes (google-format-completes (res-map res)))))
 
-(defn get-word [q cb]
-  ($/ajax (str wordnik-base q ".*?allowRegex=true&api_key=997ea3a64b190c6d8f0040df7b6003393e51bbd224bc5ec8d")
-          {:dataType "jsonp"
-           :success (fn [res]
-                      (cb
-                       (when-let [word (get-in (res-map res) [:searchResults 1 :word])]
-                         word)))}))
+(defn autocomplete [input]
+  ($/ajax (str google-auto input)
+          {:dataType "jsonp" :success (partial google-auto-update! input)}))
 
 (add-dom-watch :tweet-watch [s new]
                (let [{:keys [value]} (second new)]
                  (when (< (count value) (inc tweet-length))
-                   {:tweet value})))
+                   {:input value})))
 
-(add-dom-watch :input-watch [s new]
+(add-dom-watch :search-watch [s new]
                (let [{:keys [value]} (second new)
-                     patch {:search {:query value}}
-                     search (:search s)
-                     first-complete (get-in search [:completes 0 :string])]
+                     patch {:input value}
+                     first-complete (get-in s [:completes 0 :string])]
                  (if (empty? value)
-                   (assoc-in patch [:search :completes] [])
+                   (assoc patch :completes [])
                    (do (autocomplete value) patch))))
 
 (defn prevent-default [event]
@@ -83,21 +76,22 @@
   (set! js/window.location
         (str "//www.google.com/search?q=" (.-value (:target event)))))
 
-(defn first-result [search]
+(defn first-result [completes input]
   (if-let [complete (first
                      (drop-while
-                      #(not (starts-with? (:string %) (:query search)))
-                      (:completes search)))]
+                      #(not (starts-with? (:string %) input))
+                      completes))]
     (:string complete) ""))
 
 (defn complete-suggestion [event]
   (prevent-default event)
-  (let [search (:search @state)
-        query (:query search)
-        suggestion (first-result search)]
+  (let [s @state
+        input (:input s)
+        completes (:completes s)
+        suggestion (first-result completes input)]
     (when-not (empty? suggestion)
-      (let [s (swap! state assoc-in [:search :query] suggestion)]
-        (autocomplete (-> s :search :query))))))
+      (let [new (swap! state assoc :input suggestion)]
+        (autocomplete (:input new))))))
 
 
 (defn event-info [e]
@@ -127,18 +121,18 @@
       [:div.complete complete-str])))
 
 (defn render [s]
-  (let [{:keys [search]} s]
+  (let [{:keys [input completes]} s]
     [:div#container
      [:div#input-wrapper
-      [:textarea#input {:watch :input-watch
-                        :value (:query search)
+      [:textarea#input {:watch :search-watch
+                        :value input
                         :autofocus true
-                        :placeholder "Search..."}]
-      [:textarea#input-back {:value (first-result search)
+                        :placeholder "Type..."}]
+      [:textarea#input-back {:value (first-result completes input)
                              :disabled true}]]
      [:div#results
-      {:class (when (empty? (:completes search)) "hide")}
-      (map #(auto-result (:query search) %) (:completes search))]]))
+      {:class (when (empty? completes) "hide")}
+      (map #(auto-result input %) completes)]]))
 
 (swap! state assoc :key-handle search)
 (fui/launch-app state render)
