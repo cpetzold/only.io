@@ -7,5 +7,4 @@
 /checkouts
 /.lein-deps-sum
 .lein*
-*.js
 target
