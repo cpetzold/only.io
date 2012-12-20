@@ -32291,7 +32291,7 @@ onlyio.core.tweet_length = 140;
 onlyio.core.google_auto = "http://clients5.google.com/complete/search?hl=en&client=chrome&q=";
 onlyio.core.key_map = cljs.core.PersistentArrayMap.fromArrays([13, 9, 32], ["\ufdd0'enter", "\ufdd0'tab", "\ufdd0'space"]);
 onlyio.core.auto_map = cljs.core.ObjMap.fromObject(["\ufdd0'tweet"], {"\ufdd0'tweet":"woot"});
-onlyio.core.initial_state = cljs.core.ObjMap.fromObject(["\ufdd0'mode", "\ufdd0'input", "\ufdd0'completes"], {"\ufdd0'mode":"\ufdd0'tweet", "\ufdd0'input":"", "\ufdd0'completes":cljs.core.PersistentVector.EMPTY});
+onlyio.core.initial_state = cljs.core.ObjMap.fromObject(["\ufdd0'mode", "\ufdd0'input", "\ufdd0'completes"], {"\ufdd0'mode":"\ufdd0'search", "\ufdd0'input":"", "\ufdd0'completes":cljs.core.PersistentVector.EMPTY});
 onlyio.core.state = cljs.core.atom.call(null, onlyio.core.initial_state);
 onlyio.core.starts_with_QMARK_ = function starts_with_QMARK_(s, p) {
   return cljs.core._EQ_.call(null, 0, s.indexOf(p))
@@ -32304,13 +32304,13 @@ onlyio.core.google_format_completes = function google_format_completes(res) {
   var types = cljs.core.get_in.call(null, res, cljs.core.PersistentVector.fromArray([4, "\ufdd0'google:suggesttype"], true));
   var relevance = cljs.core.get_in.call(null, res, cljs.core.PersistentVector.fromArray([4, "\ufdd0'google:suggestrelevance"], true));
   return cljs.core.into.call(null, cljs.core.PersistentVector.EMPTY, function() {
-    var iter__2462__auto__ = function iter__7485(s__7486) {
+    var iter__2462__auto__ = function iter__5255(s__5256) {
       return new cljs.core.LazySeq(null, false, function() {
-        var s__7486__$1 = s__7486;
+        var s__5256__$1 = s__5256;
         while(true) {
-          if(cljs.core.seq.call(null, s__7486__$1)) {
-            var i = cljs.core.first.call(null, s__7486__$1);
-            return cljs.core.cons.call(null, cljs.core.ObjMap.fromObject(["\ufdd0'string", "\ufdd0'type", "\ufdd0'rel"], {"\ufdd0'string":cljs.core.nth.call(null, strings, i), "\ufdd0'type":cljs.core.nth.call(null, types, i), "\ufdd0'rel":cljs.core.nth.call(null, relevance, i)}), iter__7485.call(null, cljs.core.rest.call(null, s__7486__$1)))
+          if(cljs.core.seq.call(null, s__5256__$1)) {
+            var i = cljs.core.first.call(null, s__5256__$1);
+            return cljs.core.cons.call(null, cljs.core.ObjMap.fromObject(["\ufdd0'string", "\ufdd0'type", "\ufdd0'rel"], {"\ufdd0'string":cljs.core.nth.call(null, strings, i), "\ufdd0'type":cljs.core.nth.call(null, types, i), "\ufdd0'rel":cljs.core.nth.call(null, relevance, i)}), iter__5255.call(null, cljs.core.rest.call(null, s__5256__$1)))
           }else {
             return null
           }
@@ -32332,9 +32332,9 @@ onlyio.core.autocomplete = function autocomplete(input) {
   return jayq.core.ajax.call(null, [cljs.core.str(onlyio.core.google_auto), cljs.core.str(input)].join(""), cljs.core.ObjMap.fromObject(["\ufdd0'dataType", "\ufdd0'success"], {"\ufdd0'dataType":"jsonp", "\ufdd0'success":cljs.core.partial.call(null, onlyio.core.google_auto_update_BANG_, input)}))
 };
 webfui.framework.add_dom_watch_helper.call(null, "\ufdd0'tweet-watch", function(s, new$) {
-  var map__7487 = cljs.core.second.call(null, new$);
-  var map__7487__$1 = cljs.core.seq_QMARK_.call(null, map__7487) ? cljs.core.apply.call(null, cljs.core.hash_map, map__7487) : map__7487;
-  var value = cljs.core._lookup.call(null, map__7487__$1, "\ufdd0'value", null);
+  var map__5257 = cljs.core.second.call(null, new$);
+  var map__5257__$1 = cljs.core.seq_QMARK_.call(null, map__5257) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5257) : map__5257;
+  var value = cljs.core._lookup.call(null, map__5257__$1, "\ufdd0'value", null);
   if(cljs.core.count.call(null, value) < onlyio.core.tweet_length + 1) {
     return cljs.core.ObjMap.fromObject(["\ufdd0'input"], {"\ufdd0'input":value})
   }else {
@@ -32342,9 +32342,9 @@ webfui.framework.add_dom_watch_helper.call(null, "\ufdd0'tweet-watch", function(
   }
 });
 webfui.framework.add_dom_watch_helper.call(null, "\ufdd0'search-watch", function(s, new$) {
-  var map__7488 = cljs.core.second.call(null, new$);
-  var map__7488__$1 = cljs.core.seq_QMARK_.call(null, map__7488) ? cljs.core.apply.call(null, cljs.core.hash_map, map__7488) : map__7488;
-  var value = cljs.core._lookup.call(null, map__7488__$1, "\ufdd0'value", null);
+  var map__5258 = cljs.core.second.call(null, new$);
+  var map__5258__$1 = cljs.core.seq_QMARK_.call(null, map__5258) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5258) : map__5258;
+  var value = cljs.core._lookup.call(null, map__5258__$1, "\ufdd0'value", null);
   var patch = cljs.core.ObjMap.fromObject(["\ufdd0'input"], {"\ufdd0'input":value});
   var first_complete = cljs.core.get_in.call(null, s, cljs.core.PersistentVector.fromArray(["\ufdd0'completes", 0, "\ufdd0'string"], true));
   if(cljs.core.empty_QMARK_.call(null, value)) {
@@ -32362,8 +32362,8 @@ onlyio.core.search_submit = function search_submit(event) {
   return window.location = [cljs.core.str("//www.google.com/search?q="), cljs.core.str((new cljs.core.Keyword("\ufdd0'target")).call(null, event).value)].join("")
 };
 onlyio.core.first_result = function first_result(completes, input) {
-  var temp__3971__auto__ = cljs.core.first.call(null, cljs.core.drop_while.call(null, function(p1__7489_SHARP_) {
-    return cljs.core.not.call(null, onlyio.core.starts_with_QMARK_.call(null, (new cljs.core.Keyword("\ufdd0'string")).call(null, p1__7489_SHARP_), input))
+  var temp__3971__auto__ = cljs.core.first.call(null, cljs.core.drop_while.call(null, function(p1__5259_SHARP_) {
+    return cljs.core.not.call(null, onlyio.core.starts_with_QMARK_.call(null, (new cljs.core.Keyword("\ufdd0'string")).call(null, p1__5259_SHARP_), input))
   }, completes));
   if(cljs.core.truth_(temp__3971__auto__)) {
     var complete = temp__3971__auto__;
@@ -32417,16 +32417,16 @@ onlyio.core.search = function search(event) {
     }
   }
 };
-onlyio.core.mode_map = cljs.core.ObjMap.fromObject(["\ufdd0'search", "\ufdd0'tweet"], {"\ufdd0'search":cljs.core.ObjMap.fromObject(["\ufdd0'placeholder", "\ufdd0'input-watch", "\ufdd0'tail-value", "\ufdd0'key-handle"], {"\ufdd0'placeholder":"Search...", "\ufdd0'input-watch":"\ufdd0'search-watch", "\ufdd0'tail-value":function mode_map(p__7490, s) {
-  var map__7492 = p__7490;
-  var map__7492__$1 = cljs.core.seq_QMARK_.call(null, map__7492) ? cljs.core.apply.call(null, cljs.core.hash_map, map__7492) : map__7492;
-  var completes = cljs.core._lookup.call(null, map__7492__$1, "\ufdd0'completes", null);
-  var input = cljs.core._lookup.call(null, map__7492__$1, "\ufdd0'input", null);
+onlyio.core.mode_map = cljs.core.ObjMap.fromObject(["\ufdd0'search", "\ufdd0'tweet"], {"\ufdd0'search":cljs.core.ObjMap.fromObject(["\ufdd0'placeholder", "\ufdd0'input-watch", "\ufdd0'tail-value", "\ufdd0'key-handle"], {"\ufdd0'placeholder":"Search...", "\ufdd0'input-watch":"\ufdd0'search-watch", "\ufdd0'tail-value":function mode_map(p__5260, s) {
+  var map__5262 = p__5260;
+  var map__5262__$1 = cljs.core.seq_QMARK_.call(null, map__5262) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5262) : map__5262;
+  var completes = cljs.core._lookup.call(null, map__5262__$1, "\ufdd0'completes", null);
+  var input = cljs.core._lookup.call(null, map__5262__$1, "\ufdd0'input", null);
   return onlyio.core.first_result.call(null, completes, input)
-}, "\ufdd0'key-handle":onlyio.core.search}), "\ufdd0'tweet":cljs.core.ObjMap.fromObject(["\ufdd0'placeholder", "\ufdd0'input-watch", "\ufdd0'tail-value"], {"\ufdd0'placeholder":"Tweet...", "\ufdd0'input-watch":"\ufdd0'tweet-watch", "\ufdd0'tail-value":function mode_map(p__7493, s) {
-  var map__7495 = p__7493;
-  var map__7495__$1 = cljs.core.seq_QMARK_.call(null, map__7495) ? cljs.core.apply.call(null, cljs.core.hash_map, map__7495) : map__7495;
-  var input = cljs.core._lookup.call(null, map__7495__$1, "\ufdd0'input", null);
+}, "\ufdd0'key-handle":onlyio.core.search}), "\ufdd0'tweet":cljs.core.ObjMap.fromObject(["\ufdd0'placeholder", "\ufdd0'input-watch", "\ufdd0'tail-value"], {"\ufdd0'placeholder":"Tweet...", "\ufdd0'input-watch":"\ufdd0'tweet-watch", "\ufdd0'tail-value":function mode_map(p__5263, s) {
+  var map__5265 = p__5263;
+  var map__5265__$1 = cljs.core.seq_QMARK_.call(null, map__5265) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5265) : map__5265;
+  var input = cljs.core._lookup.call(null, map__5265__$1, "\ufdd0'input", null);
   if(cljs.core.empty_QMARK_.call(null, input)) {
     return""
   }else {
@@ -32434,9 +32434,9 @@ onlyio.core.mode_map = cljs.core.ObjMap.fromObject(["\ufdd0'search", "\ufdd0'twe
   }
 }})});
 onlyio.core.handle_keydown = function handle_keydown(e) {
-  var temp__3971__auto__ = (new cljs.core.Keyword("\ufdd0'key-handle")).call(null, (new cljs.core.Keyword("\ufdd0'mode")).call(null, onlyio.core.mode_map, cljs.core.deref.call(null, onlyio.core.state)));
-  if(cljs.core.truth_(temp__3971__auto__)) {
-    var key_handle = temp__3971__auto__;
+  var temp__3974__auto__ = (new cljs.core.Keyword("\ufdd0'key-handle")).call(null, onlyio.core.mode_map.call(null, (new cljs.core.Keyword("\ufdd0'mode")).call(null, cljs.core.deref.call(null, onlyio.core.state))));
+  if(cljs.core.truth_(temp__3974__auto__)) {
+    var key_handle = temp__3974__auto__;
     return key_handle.call(null, onlyio.core.event_info.call(null, e))
   }else {
     return null
@@ -32472,11 +32472,11 @@ onlyio.core.handle_click = function handle_click(e) {
   }
 };
 onlyio.core.render = function render(s) {
-  var map__7498 = s;
-  var map__7498__$1 = cljs.core.seq_QMARK_.call(null, map__7498) ? cljs.core.apply.call(null, cljs.core.hash_map, map__7498) : map__7498;
-  var mode = cljs.core._lookup.call(null, map__7498__$1, "\ufdd0'mode", null);
-  var completes = cljs.core._lookup.call(null, map__7498__$1, "\ufdd0'completes", null);
-  var input = cljs.core._lookup.call(null, map__7498__$1, "\ufdd0'input", null);
+  var map__5268 = s;
+  var map__5268__$1 = cljs.core.seq_QMARK_.call(null, map__5268) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5268) : map__5268;
+  var mode = cljs.core._lookup.call(null, map__5268__$1, "\ufdd0'mode", null);
+  var completes = cljs.core._lookup.call(null, map__5268__$1, "\ufdd0'completes", null);
+  var input = cljs.core._lookup.call(null, map__5268__$1, "\ufdd0'input", null);
   var params = onlyio.core.mode_map.call(null, mode);
   return cljs.core.PersistentVector.fromArray(["\ufdd0'div#container", cljs.core.PersistentVector.fromArray(["\ufdd0'button#toggle-mode", [cljs.core.str("Switch to "), cljs.core.str(cljs.core.name.call(null, onlyio.core.other_mode.call(null, mode))), cljs.core.str(" mode")].join("")], true), cljs.core.PersistentVector.fromArray(["\ufdd0'div#input-wrapper", cljs.core.PersistentVector.fromArray(["\ufdd0'textarea#input", cljs.core.ObjMap.fromObject(["\ufdd0'watch", "\ufdd0'value", "\ufdd0'autofocus", 
   "\ufdd0'placeholder"], {"\ufdd0'watch":(new cljs.core.Keyword("\ufdd0'input-watch")).call(null, params), "\ufdd0'value":input, "\ufdd0'autofocus":true, "\ufdd0'placeholder":(new cljs.core.Keyword("\ufdd0'placeholder")).call(null, params)})], true), cljs.core.PersistentVector.fromArray(["\ufdd0'textarea#tail", cljs.core.ObjMap.fromObject(["\ufdd0'value", "\ufdd0'disabled"], {"\ufdd0'value":(new cljs.core.Keyword("\ufdd0'tail-value")).call(null, params).call(null, s), "\ufdd0'disabled":true})], true)], 
@@ -32487,8 +32487,8 @@ onlyio.core.render = function render(s) {
     }else {
       return cljs.core.empty_QMARK_.call(null, completes)
     }
-  }() ? "hide" : null}), cljs.core.map.call(null, function(p1__7496_SHARP_) {
-    return onlyio.core.auto_result.call(null, input, p1__7496_SHARP_)
+  }() ? "hide" : null}), cljs.core.map.call(null, function(p1__5266_SHARP_) {
+    return onlyio.core.auto_result.call(null, input, p1__5266_SHARP_)
   }, completes)], true)], true)
 };
 webfui.framework.launch_app.call(null, onlyio.core.state, onlyio.core.render);

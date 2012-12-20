@@ -26,7 +26,7 @@
 
 ;; state
 (def initial-state
-  {:mode :tweet
+  {:mode :search
    :input ""
    :completes []})
 
@@ -123,7 +123,7 @@
                                             (str input (- tweet-length (count input)))))}})
 
 (defn handle-keydown [e]
-  (if-let [key-handle (-> mode-map (:mode @state) :key-handle)]
+  (when-let [key-handle (:key-handle (mode-map (:mode @state)))]
     (key-handle (event-info e))))
 
 (defn auto-result [query complete]
