@@ -11,7 +11,7 @@
 
 (def tweet-length 140)
 
-(def wordnik-base "http://api.wordnik.com//v4/words.json/search/")
+(def wordnik-base "http://api.wordnik.com/v4/words.json/search/")
 
 (def google-auto "http://clients5.google.com/complete/search?hl=en&client=chrome&q=")
 
@@ -56,18 +56,14 @@
                      query (-> s :search :query)
                      completes (-> s :search :completes)
                      closest (first completes)]
-                 (if (and closest
-                          (starts-with? value (:string closest))
-                          (< query value))
-                   patch
-                   (if (empty? value)
-                     (assoc-in patch [:search :completes] [])
-                     (do
-                       (autocomplete value
-                         (fn [completes]
-                           (when (= value (-> @state :search :query))
-                             (swap! state assoc-in [:search :completes] completes))))
-                       patch)))))
+                 (if (empty? value)
+                   (assoc-in patch [:search :completes] [])
+                   (do
+                     (autocomplete value
+                       (fn [completes]
+                         (when (= value (-> @state :search :query))
+                           (swap! state assoc-in [:search :completes] completes))))
+                     patch))))
 
 (defn search-submit [e]
   (let [target (.-target e)]
@@ -75,15 +71,23 @@
     (set! js/window.location
           (str "//www.google.com/search?q=" (.-value target)))))
 
+(defn complete-suggestion [e]
+  (.preventDefault e)
+  (let [suggestion (first-result (:search @state))]
+    (when-not (empty? suggestion)
+      (swap! state assoc-in [:search :query] suggestion))))
+
 (defn search [e]
   (let [target (.-target e)
         code (.-keyCode e)
         id (.getAttribute target "id")]
     (case code
       13 (when (= id "input") (search-submit e))
+      9 (when (= id "input") (complete-suggestion e))
       nil)))
 
-(defn handle-keypress [e]
+(defn handle-keydown [e]
+  (dom/log-obj e)
   ((:key-handle @state) e))
 
 (defn auto-result [complete]
@@ -120,4 +124,4 @@
 
 (fui/launch-app state render)
 
-(event/listen js/document.body :keypress handle-keypress)
+(event/listen js/document.body :keydown handle-keydown)
