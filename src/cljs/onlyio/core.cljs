@@ -26,7 +26,7 @@
 
 ;; state
 (def initial-state
-  {:key-handle nil
+  {:mode :tweet
    :input ""
    :completes []})
 
@@ -120,16 +120,28 @@
        (str/replace-first complete-str (re-pattern query) "")]
       [:div.complete complete-str])))
 
+(def mode-map
+  {:search
+   {:placeholder "Search..."
+    :input-watch :search-watch
+    :tail-value (fn [{:keys [input completes]} s] (first-result completes input))}
+   :tweet
+   {:placeholder "Tweet..."
+    :input-watch :tweet-watch
+    :tail-value (fn [{:keys [input]} s] (if (empty? input) ""
+                                          (str input (- tweet-length (count input)))))}})
+
 (defn render [s]
-  (let [{:keys [input completes]} s]
+  (let [{:keys [input completes mode]} s
+        params (mode-map mode)]
     [:div#container
      [:div#input-wrapper
-      [:textarea#input {:watch :search-watch
+      [:textarea#input {:watch (:input-watch params)
                         :value input
                         :autofocus true
-                        :placeholder "Type..."}]
-      [:textarea#input-back {:value (first-result completes input)
-                             :disabled true}]]
+                        :placeholder (:placeholder params)}]
+      [:textarea#tail {:value ((:tail-value params) s)
+                       :disabled true}]]
      [:div#results
       {:class (when (empty? completes) "hide")}
       (map #(auto-result input %) completes)]]))
